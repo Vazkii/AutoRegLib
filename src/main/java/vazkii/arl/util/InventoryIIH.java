@@ -3,7 +3,9 @@ package vazkii.arl.util;
 import javax.annotation.Nonnull;
 
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 public class InventoryIIH implements IItemHandlerModifiable {
@@ -13,7 +15,17 @@ public class InventoryIIH implements IItemHandlerModifiable {
 
 	public InventoryIIH(ItemStack stack) {
 		this.stack = stack;
-		iih = (IItemHandlerModifiable) stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+		LazyOptional<IItemHandler> opt = stack.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null); 
+		
+		if(opt.isPresent()) {
+			IItemHandler handler = opt.orElse(null);
+			if(handler instanceof IItemHandlerModifiable)
+				iih = (IItemHandlerModifiable) handler;
+			else iih = null;
+		} else iih = null;
+		
+		if(iih == null)
+			throw new RuntimeException("Can't load InventoryIIH without a proper IItemHandlerModifiable");
 	}
 
 	@Override
@@ -47,5 +59,10 @@ public class InventoryIIH implements IItemHandlerModifiable {
 	@Override
 	public int getSlotLimit(int slot) {
 		return iih.getSlotLimit(slot);
+	}
+
+	@Override
+	public boolean isItemValid(int slot, ItemStack stack) {
+		return iih.isItemValid(slot, stack);
 	}
 }

@@ -2,6 +2,9 @@
 
 pipeline {
     agent any
+    tools {
+        jdk "jdk8u292-b10"
+    }
     stages {
         stage('Clean') {
             steps {
@@ -10,16 +13,10 @@ pipeline {
                 sh './gradlew clean'
             }
         }
-        stage('Setup') {
-            steps {
-                echo 'Setting up Workspace'
-                sh './gradlew setupDecompWorkspace'
-            }
-        }
         stage('Build and Deploy') {
             steps {
                 echo 'Building and Deploying to Maven'
-					sh './gradlew build sort uploadArchives'
+					sh './gradlew build uploadArchives'
                 }
             }
         }

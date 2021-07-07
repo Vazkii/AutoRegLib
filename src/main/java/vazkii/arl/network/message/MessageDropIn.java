@@ -1,34 +1,25 @@
 package vazkii.arl.network.message;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import vazkii.arl.network.NetworkMessage;
+import net.minecraftforge.fml.network.NetworkEvent;
+import vazkii.arl.network.IMessage;
 import vazkii.arl.util.DropInHandler;
 
-public class MessageDropIn extends NetworkMessage<MessageDropIn> {
+public class MessageDropIn implements IMessage {
+
+	private static final long serialVersionUID = 4879090175821123361L;
 
 	public int slot;
-	public ItemStack stack = ItemStack.EMPTY;
-	
+
 	public MessageDropIn() { }
 	
-	public MessageDropIn(int slot) { 
+	public MessageDropIn(int slot) {
 		this.slot = slot;
 	}
 	
-	public MessageDropIn(int slot, ItemStack stack) { 
-		this(slot);
-		this.stack = stack;
-	}
-	
-	@Override
-	public IMessage handleMessage(MessageContext context) {
-		EntityPlayerMP player = context.getServerHandler().player;
-		player.server.addScheduledTask(() -> DropInHandler.executeDropIn(player, slot, stack));
+	public boolean receive(NetworkEvent.Context context) {
+		context.enqueueWork(() -> DropInHandler.executeDropIn(context.getSender(), slot));
 		
-		return null;
+		return true;
 	}
 	
 }

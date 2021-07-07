@@ -10,67 +10,59 @@
  */
 package vazkii.arl.block.tile;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import vazkii.arl.util.VanillaPacketDispatcher;
-
 import javax.annotation.Nonnull;
+
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
+import vazkii.arl.util.VanillaPacketDispatcher;
 
 public abstract class TileMod extends TileEntity {
 
-	@Override
-	public boolean shouldRefresh(World world, BlockPos pos, @Nonnull IBlockState oldState, @Nonnull IBlockState newState) {
-		return oldState.getBlock() != newState.getBlock();
+	public TileMod(TileEntityType<?> tileEntityTypeIn) {
+		super(tileEntityTypeIn);
 	}
 
 	@Nonnull
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound) {
-		NBTTagCompound nbt = super.writeToNBT(par1nbtTagCompound);
+	public CompoundNBT write(CompoundNBT par1nbtTagCompound) {
+		CompoundNBT nbt = super.write(par1nbtTagCompound);
 
 		writeSharedNBT(par1nbtTagCompound);
 		return nbt;
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound par1nbtTagCompound) {
-		super.readFromNBT(par1nbtTagCompound);
+	public void read(BlockState p_230337_1_, CompoundNBT p_230337_2_) {
+		super.read(p_230337_1_, p_230337_2_);
 
-		readSharedNBT(par1nbtTagCompound);
+		readSharedNBT(p_230337_2_);
 	}
 
-	public void writeSharedNBT(NBTTagCompound cmp) {
+	public void writeSharedNBT(CompoundNBT cmp) {
 		// NO-OP
 	}
 
-	public void readSharedNBT(NBTTagCompound cmp) {
+	public void readSharedNBT(CompoundNBT cmp) {
 		// NO-OP
 	}
 	
 	public void sync() {
 		VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
 	}
-
-	@Nonnull
-	@Override
-	public NBTTagCompound getUpdateTag()  {
-		return writeToNBT(new NBTTagCompound());
-	}
 	
 	@Override
-	public SPacketUpdateTileEntity getUpdatePacket() {
-		NBTTagCompound cmp = new NBTTagCompound();
+	public SUpdateTileEntityPacket getUpdatePacket() {
+		CompoundNBT cmp = new CompoundNBT();
 		writeSharedNBT(cmp);
-		return new SPacketUpdateTileEntity(getPos(), getBlockMetadata(), cmp);
+		return new SUpdateTileEntityPacket(getPos(), 0, cmp);
 	}
 	
 	@Override
-	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
 		super.onDataPacket(net, packet);
 		readSharedNBT(packet.getNbtCompound());
 	}
